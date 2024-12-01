@@ -1,8 +1,8 @@
 # Используем базовый образ Ubuntu
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # Настройки локализации
-RUN apt-get update && apt-get install -y locales && \
+RUN apt-get update && apt-get install -y locales&& \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -17,13 +17,16 @@ RUN apt-get update && \
     cmake build-essential manpages-dev libopengl0 \
     gawk bison python3 software-properties-common
 
+
+
+
 # Загрузка и сборка glibc
-RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.32.tar.gz && \
-    tar -xvf glibc-2.32.tar.gz && \
-    cd glibc-2.32 && \
-    mkdir build && cd build && \
-    ../configure --prefix=/opt/glibc-2.34 && \
-    make -j$(nproc) && make install
+# RUN wget http://ftp.gnu.org/gnu/libc/glibc-2.32.tar.gz && \
+#     tar -xvf glibc-2.32.tar.gz && \
+#     cd glibc-2.32 && \
+#     mkdir build && cd build && \
+#     ../configure --prefix=/opt/glibc-2.34 && \
+#     make -j$(nproc) && make install
 
 # Добавление новой версии glibc в PATH
 #ENV LD_LIBRARY_PATH=/opt/glibc-2.34/lib:$LD_LIBRARY_PATH
@@ -67,4 +70,3 @@ RUN mkdir sofa && \
 
 # Запуск контейнера в интерактивном режиме с шеллом
 CMD ["./root/SOFA/v24.06.00/bin/runSofa"]
-
