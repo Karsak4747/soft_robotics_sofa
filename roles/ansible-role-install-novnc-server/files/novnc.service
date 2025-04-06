@@ -1,0 +1,13 @@
+[Unit]
+Description=Websockify NoVNC server
+After=x11vnc.service
+Requires=x11vnc.service
+
+[Service]
+ExecStart=/usr/bin/websockify --web /opt/novnc 6080 localhost:5900
+Restart=always
+RestartSec=2
+User=root
+
+[Install]
+WantedBy=multi-user.target

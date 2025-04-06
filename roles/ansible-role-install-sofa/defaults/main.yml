@@ -1,0 +1,5 @@
+---
+# defaults file for ansible-role-install-sofa
+sofa_source_url: https://github.com/sofa-framework/sofa/releases/download/v24.12.00/SOFA_v24.12.00_Linux-Python_3.12.zip
+ftp_username: SS
+ftp_password: 89111800550

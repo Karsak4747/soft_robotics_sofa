@@ -1,0 +1,5 @@
+- hosts: test
+  become: yes
+  roles:
+    - ansible-role-install-sofa
+    - ansible-role-install-novnc-server

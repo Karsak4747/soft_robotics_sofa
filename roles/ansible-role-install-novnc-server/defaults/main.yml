@@ -1,0 +1,4 @@
+---
+# defaults file for ansible-role-install-novnc-server
+flux_item_name: SofaFinger
+flux_item_command: /opt/Sofa/bin/runSofa /tmp/finger_project/details/'pneunetgripper-tuto-res round.py'

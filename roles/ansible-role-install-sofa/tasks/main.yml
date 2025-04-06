@@ -1,0 +1,119 @@
+---
+# tasks file for ansible-role-install-sofa
+- name: Sofa | Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Sofa | Install prerequisites for add-apt-repository
+  apt:
+    name: software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Sofa | Add deadsnakes PPA
+  apt_repository:
+    repo: ppa:deadsnakes/ppa
+    state: present
+    update_cache: yes
+
+- name: Sofa | Install packages
+  ansible.builtin.apt:
+    name:
+     - unzip 
+     - zstd 
+     - xz-utils 
+     - bzip2 
+     - gzip
+     - libgl1
+     - libglx0
+     - libglx-mesa0
+     - libopengl0
+     - libpython3.12
+     - python3.12
+     - python3.12-venv
+    state: present
+
+- name: Sofa | Download get-pip.py
+  ansible.builtin.get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+
+- name: Sofa | Download pip via python3.12
+  ansible.builtin.command: python3.12 /tmp/get-pip.py
+  args:
+    creates: /usr/local/bin/pip3.12
+
+- name: Sofa | Create simlink pip3.12 (if not create automaticly)
+  ansible.builtin.file:
+    src: /usr/local/bin/pip
+    dest: /usr/local/bin/pip3.12
+    state: link
+  when: not (ansible_facts.packages['pip3.12'] is defined)
+  ignore_errors: yes
+
+- name: Sofa | Install required Python packages
+  pip:
+    name:
+      - numpy
+      - scipy
+      - pybind11==2.9.1
+    executable: pip3.12
+
+- name: Sofa | Install Sofa
+  block:
+    - name: Creates directory
+      ansible.builtin.file:
+        path: /tmp/sofa_extract
+        state: directory
+
+    - name: Sofa | Extract Sofa.zip into /tmp/sofa_extract
+      ansible.builtin.unarchive:
+        src: "{{ sofa_source_url }}"
+        dest: /tmp/sofa_extract
+        remote_src: true
+        extra_opts: "-P unzip"
+        
+    - name: Sofa | Find extracted directory
+      find:
+        paths: /tmp/sofa_extract
+        file_type: directory
+        patterns: "SOFA_*"
+      register: found_dirs
+
+    - name: Sofa | Move to final location
+      copy:
+        src: "{{ found_dirs.files[0].path }}/" 
+        dest: /opt/Sofa
+        remote_src: True
+      when: found_dirs.files|length > 0
+
+    - name: Sofa | Cleanup temp
+      file:
+        path: /tmp/sofa_extract
+        state: absent
+      
+    - name: Sofa | Add SofaPython3
+      lineinfile:
+        path: /opt/Sofa/lib/plugin_list.conf
+        line: 'SofaPython3 NO_VERSION'
+        insertafter: EOF
+        create: yes
+
+
+- name: Sofa | Prepare project
+  block:
+    - name: Установка lftp (если не установлен)
+      apt:
+        name: lftp
+        state: present
+
+    - name: Sofa | Recursive download from FTP
+      command: >
+        lftp -e "mirror --verbose --parallel=5 /Fingers/Simulation/PneunetGripper /tmp/finger_project; quit"
+        -u {{ ftp_username }},{{ ftp_password }} ftp://karen-glove.ru
+      args:
+        creates: /tmp/finger_project 
+
+
+
+

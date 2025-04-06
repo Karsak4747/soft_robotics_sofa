@@ -1,0 +1,71 @@
+---
+# tasks file for ansible-role-install-novnc-server
+- name: NoVNC | Install packages
+  apt:
+    name:
+      - git
+      - python3
+      - python3-pip
+      - x11vnc
+      - xvfb
+      - fluxbox
+      - websockify
+      - wget
+    update_cache: yes
+
+- name: NoVNC | Clone NoVNC
+  git:
+    repo: https://github.com/novnc/noVNC.git
+    dest: /opt/novnc
+    version: v1.4.0
+
+- name: NoVNC | Copy systemd unit for Xvfb
+  copy:
+    src: xvfb.service
+    dest: /etc/systemd/system/xvfb.service
+    mode: '0644'
+
+- name: NoVNC | Copy systemd unit for x11vnc
+  copy:
+    src: x11vnc.service
+    dest: /etc/systemd/system/x11vnc.service
+    mode: '0644'
+
+- name: NoVNC | Copy systemd unit for novnc
+  copy:
+    src: novnc.service
+    dest: /etc/systemd/system/novnc.service
+    mode: '0644'
+
+- name: NoVNC | Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: NoVNC | Restart services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: restarted
+  loop:
+    - xvfb
+    - x11vnc
+    - novnc
+
+- name: NoVNC | Ensure own project menu item exists in fluxbox menu
+  lineinfile:
+    path: /etc/X11/fluxbox/fluxbox-menu
+    insertafter: '^\[begin\] \(Fluxbox\)'
+    line: '   [exec] ({{ flux_item_name }}) { {{ flux_item_command }} }'
+    state: present
+  notify: restart fluxbox
+
+
+- name: NoVNC | Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: NoVNC | Start NoVNC
+  systemd:
+    name: novnc
+    enabled: yes
+    state: started

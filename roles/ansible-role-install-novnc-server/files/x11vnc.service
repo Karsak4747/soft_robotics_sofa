@@ -1,0 +1,13 @@
+[Unit]
+Description=x11vnc server on :1
+After=xvfb.service
+Requires=xvfb.service
+
+[Service]
+ExecStart=/usr/bin/x11vnc -display :1 -nopw -forever -shared
+Restart=always
+RestartSec=2
+User=root
+
+[Install]
+WantedBy=multi-user.target
